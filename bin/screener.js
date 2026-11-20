@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { age, c, footer, main, parseArgs, pct, price, sleep, table, usd } from "../lib/core.js";
-import { load, parseAmount, parseDuration, screen, SORT_KEYS } from "../lib/screen.js";
+import { load, parseOptions, screen, SORT_KEYS } from "../lib/screen.js";
 
 const HELP = `solana-memecoin-screener: filter live Solana memecoins from the terminal
 
@@ -35,29 +35,12 @@ Examples:
   screener --source boosted --min-vol 100k --watch 30
 `;
 
-const amount = (v) => (v === undefined ? undefined : parseAmount(v));
-const duration = (v) => (v === undefined ? undefined : parseDuration(v));
 const signed = (n) => (n === null ? c.dim("-") : n >= 0 ? c.green(pct(n)) : c.red(pct(n)));
 
 main(async () => {
   const args = parseArgs(process.argv.slice(2), { booleans: ["json", "help", "pump-only"] });
   if (args.help) { console.log(HELP); return; }
-  const source = String(args.source || "trending");
-  const pages = Math.max(1, Math.min(10, Number(args.pages) || 2));
-  const filters = {
-    minLiq: amount(args["min-liq"]), maxLiq: amount(args["max-liq"]),
-    minMcap: amount(args["min-mcap"]), maxMcap: amount(args["max-mcap"]),
-    minVol: amount(args["min-vol"]), minVol1h: amount(args["min-vol-1h"]),
-    minAge: duration(args["min-age"]), maxAge: duration(args["max-age"]),
-    minChange1h: args["min-change-1h"] !== undefined ? Number(args["min-change-1h"]) : undefined,
-    minBuyers: args["min-buyers"] !== undefined ? Number(args["min-buyers"]) : undefined,
-    dex: typeof args.dex === "string" ? args.dex : undefined,
-    pumpOnly: Boolean(args["pump-only"]),
-    search: typeof args.search === "string" ? args.search : undefined,
-    sort: typeof args.sort === "string" ? args.sort : "vol",
-    limit: Number(args.limit) || 25,
-  };
-  const watch = args.watch ? Math.max(15, Number(args.watch) || 30) : 0;
+  const { source, pages, filters, watch } = parseOptions(args);
 
   const runOnce = async () => {
     const raw = await load(source, pages);
