@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { fromDexScreener, fromGecko, parseAmount, parseDuration, screen } from "../lib/screen.js";
+import { filterRows, fromDexScreener, fromGecko, parseAmount, parseDuration, screen } from "../lib/screen.js";
 
 const row = (o) => ({ symbol: "X", name: "", mint: "M", pool: "P", dex: "pumpswap", ageMs: 3600_000, priceUsd: 1, mcap: 1e6, liq: 5e4, vol5m: 1, vol1h: 10, vol24h: 100, chg5m: 0, chg1h: 0, chg24h: 0, buys1h: 5, sells1h: 5, buyers1h: 4, ...o });
 
@@ -61,4 +61,19 @@ test("--dex keeps a token whose deepest pool is on another DEX, using its pool o
   const out = screen(rows, { dex: "PumpSwap" });
   assert.deepEqual(out.map((r) => r.pool), ["pump"]);
   assert.equal(screen(rows).find((r) => r.mint === "A").pool, "deep");
+});
+
+test("filterRows returns all matching tokens while screen limits output", () => {
+  const rows = [
+    row({ mint: "A", vol24h: 50 }),
+    row({ mint: "B", vol24h: 40 }),
+    row({ mint: "C", vol24h: 30 }),
+    row({ mint: "D", vol24h: 20 }),
+    row({ mint: "E", vol24h: 10 }),
+  ];
+  const matched = filterRows(rows, { limit: 2 });
+  const limited = screen(rows, { limit: 2 });
+  assert.equal(matched.length, 5);
+  assert.equal(limited.length, 2);
+  assert.deepEqual(limited.map((r) => r.mint), ["A", "B"]);
 });

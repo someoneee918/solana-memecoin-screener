@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { age, c, footer, main, parseArgs, pct, price, sleep, table, usd } from "../lib/core.js";
-import { load, parseAmount, parseDuration, screen, SORT_KEYS } from "../lib/screen.js";
+import { filterRows, load, parseAmount, parseDuration, screen, SORT_KEYS } from "../lib/screen.js";
 
 const HELP = `solana-memecoin-screener: filter live Solana memecoins from the terminal
 
@@ -61,10 +61,14 @@ main(async () => {
 
   const runOnce = async () => {
     const raw = await load(source, pages);
-    const rows = screen(raw, filters);
+    const matched = filterRows(raw, filters);
+    const rows = matched.slice(0, filters.limit || 25);
     if (args.json) { console.log(JSON.stringify(rows, null, 2)); return; }
     if (watch && process.stdout.isTTY) process.stdout.write("\x1b[2J\x1b[H");
-    console.log(c.bold(`Solana memecoin screener`) + c.dim(`  ·  ${source}  ·  ${rows.length} of ${raw.length} pools match  ·  ${new Date().toLocaleTimeString("en-GB")}\n`));
+    const countNote = matched.length > rows.length
+      ? `${matched.length} tokens match (showing ${rows.length})`
+      : `${matched.length} tokens match`;
+    console.log(c.bold(`Solana memecoin screener`) + c.dim(`  ·  ${source}  ·  ${countNote}  ·  ${raw.length} pools scanned  ·  ${new Date().toLocaleTimeString("en-GB")}\n`));
     if (!rows.length) { console.log("Nothing matches these filters. Loosen one, or scan more with --pages."); return; }
     table(
       [
