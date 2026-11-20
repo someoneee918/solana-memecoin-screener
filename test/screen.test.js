@@ -35,6 +35,9 @@ test("sorts descending, newest first for age, and limits", () => {
   assert.deepEqual(screen(rows, { sort: "chg1h" }).map((r) => r.mint), ["B", "A", "C"]);
   assert.deepEqual(screen(rows, { sort: "age" }).map((r) => r.mint), ["C", "A", "B"]);
   assert.equal(screen(rows, { limit: 2 }).length, 2);
+  assert.equal(screen(rows, { limit: 3 }).length, 3);
+  assert.throws(() => screen(rows, { limit: -5 }), /positive integer/);
+  assert.throws(() => screen(rows, { limit: 0 }), /positive integer/);
   assert.throws(() => screen(rows, { sort: "vibes" }));
 });
 

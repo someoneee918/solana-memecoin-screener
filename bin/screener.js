@@ -55,7 +55,7 @@ main(async () => {
     pumpOnly: Boolean(args["pump-only"]),
     search: typeof args.search === "string" ? args.search : undefined,
     sort: typeof args.sort === "string" ? args.sort : "vol",
-    limit: Number(args.limit) || 25,
+    limit: args.limit !== undefined ? Number(args.limit) : undefined,
   };
   const watch = args.watch ? Math.max(15, Number(args.watch) || 30) : 0;
 
